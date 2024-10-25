@@ -21,4 +21,3 @@ def create_session(
     sess.mount(base_url, adapter)
     
     return sess
-
