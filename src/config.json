@@ -1,8 +1,4 @@
 {
-    "auth": {
-        "session_token": "test_token"
-    },
-    "net": {
-        "base_url": "https://test_url.airflow.dev"
-    }
+    "airflow_session_token": null,
+    "airflow_base_url": null
 }

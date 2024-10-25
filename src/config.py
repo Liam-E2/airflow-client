@@ -15,5 +15,3 @@ def edit_config(*args, **kwargs):
         os.startfile(CONFIG_FILE)
 
     subprocess.check_call(["open", CONFIG_FILE])
-
-
