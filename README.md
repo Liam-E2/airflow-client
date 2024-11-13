@@ -6,6 +6,7 @@ Simple python airflow client CLI for when you're:
 
 ## Commands
     configure: Opens config file in default text editor
+    dag: List/trigger dags
 
 
 ## Configuration

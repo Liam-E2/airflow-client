@@ -77,6 +77,37 @@ def dag(subs: argparse._SubParsersAction):
         cmd=triggerfn
     )
 
+    list_dagruns = dag_subs.add_parser("runs", help="List DAG runs given DAG ID")
+    list_dagruns.add_argument("-i", "--dag_id", help="DAG id", type=str)
+    list_dagruns.add_argument("-l", "--limit", type=int, default=10)
+    list_dagruns.add_argument("-o", "--offset", type=int, default=0)
+    list_dagruns.add_argument("-ob", "--order_by", type=str, help="Field to order by, prefix with - for reverse", default="-start_date")
+    list_dagruns.add_argument('--raw', action="store_true")
+
+    def list_runsfn(args: argparse.Namespace):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url')
+        )
+
+        dag_run_results = airflow_rest.list_dag_runs(
+                sess,
+                args.conf.get('airflow_base_url'),
+                args.dag_id,
+                args.limit,
+                args.offset,
+                args.order_by
+            )
+        
+        if args.raw:
+            pprint(dag_run_results)
+            return
+        
+        pprint_table(dag_run_results.get('dag_runs', []))
+    
+    list_dagruns.set_defaults(cmd=list_runsfn)
+
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
