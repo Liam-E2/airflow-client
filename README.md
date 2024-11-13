@@ -5,7 +5,6 @@ Simple python airflow client CLI for when you're:
   - Using session auth in a way not supported by default in the official airflow client
 
 ## Commands
-
     configure: Opens config file in default text editor
 
 
