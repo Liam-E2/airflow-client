@@ -1,4 +1,4 @@
-import re
+import datetime
 
 from requests.sessions import Session
 from requests import Response
@@ -25,3 +25,30 @@ def list_dags(sess: Session,
     resp = sess.get(request_url)
     return resp.json().get('dags', [])
 
+
+def trigger_dag(
+        sess: Session, 
+        base_url: str, 
+        dag_id: str,
+        dag_run_id: str = None,
+        conf: dict = dict(),
+        note: str = ""
+        ):
+    """
+    Trigger a new DAG run for the specified dag_id.
+    If no run_id passed, generates a run id of the form
+        "cli_trigger_datetime.now().isoformat()"
+    """
+    ISO = datetime.datetime.now().isoformat()
+    request_url = f"{base_url}/dags/{dag_id}/dagRuns"
+    if dag_run_id is None:
+        dag_run_id = f"cli_trigger_{ISO}"
+    
+    body = {
+        "conf": conf,
+        "dag_run_id": dag_run_id,
+        "logical_date": ISO[0:-3]+"Z",
+        "note": note
+    }
+
+    return sess.post(request_url, json=body).json()
