@@ -1,11 +1,16 @@
-import os, platform
+import os, platform, getpass
 import json
 import subprocess
 
-SRC_DIR = os.path.dirname(__file__)
+SRC_DIR = os.path.join(os.path.expanduser('~'+getpass.getuser()), 'airflow_pycli')
 CONFIG_FILE = os.path.join(SRC_DIR, 'config.json')
 
 def get_config():
+    if not os.path.exists(CONFIG_FILE):
+        os.makedirs(SRC_DIR, exist_ok=True)
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump({}, f)
+
     with open(CONFIG_FILE, 'rb') as f:
         return json.load(f)
 
