@@ -103,7 +103,10 @@ def dag(subs: argparse._SubParsersAction):
             pprint(dag_run_results)
             return
         
-        pprint_table(dag_run_results.get('dag_runs', []))
+        dag_run_data = dag_run_results.get('dag_runs', [])
+        pprint_table([
+                {k: d[k] for k in d.keys() if k in args.conf.get('dag_run_list_cols')} for d in dag_run_data
+            ])
     
     list_dagruns.set_defaults(cmd=list_runsfn)
 
