@@ -11,6 +11,11 @@ CONFIG_FILE = os.path.join(SRC_DIR, 'config.json')
 class ClientConfig:
     airflow_session_token: str = None
     airflow_base_url: str = None
+    dag_list_cols: 'list[str]' = None
+
+    def __post_init__(self):
+        if self.dag_list_cols is None:
+            self.dag_list_cols = ['dag_id', 'description', 'last_parsed_time', 'schedule_interval', 'is_active', 'is_paused', 'has_import_errors', 'tags']
 
 
 def get_config():

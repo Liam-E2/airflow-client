@@ -2,6 +2,7 @@ import argparse
 from pprint import pprint
 
 from .config import *
+from .utils import pprint_table
 from . import airflow_rest
 
 
@@ -20,14 +21,15 @@ def dag(subs: argparse._SubParsersAction):
     dag_list.add_argument("-l", "--limit", type=int, default=100)
     dag_list.add_argument("-o", "--offset", type=int, default=0)
     dag_list.add_argument("--active_only", action="store_true")
+    dag_list.add_argument("--raw", action="store_true", help="PPrint raw JSON")
 
     def listfn(args: argparse.Namespace):
         sess = airflow_rest.create_session(
             args.conf.get('airflow_session_token'),
             args.conf.get('airflow_base_url')
         )
-        pprint(
-            airflow_rest.list_dags(
+
+        dag_results = airflow_rest.list_dags(
                 sess,
                 args.conf.get('airflow_base_url'),
                 args.filter,
@@ -35,6 +37,14 @@ def dag(subs: argparse._SubParsersAction):
                 args.offset,
                 args.active_only
             )
+        if args.raw:
+            pprint(dag_results)
+            return
+        
+        pprint_table(
+            [
+                {k: d[k] for k in d.keys() if k in args.conf.get('dag_list_cols')} for d in dag_results
+            ]
         )
     
     dag_list.set_defaults(cmd=listfn)
@@ -79,8 +89,7 @@ def parse_args():
     configure = subparsers.add_parser("configure", help="Opens config file in default text editor")
     configure.set_defaults(cmd=edit_config)
 
-    dag(subparsers)
-
+    dag(subparsers) # Add dag + subcommands
 
 
     return parser.parse_args()
