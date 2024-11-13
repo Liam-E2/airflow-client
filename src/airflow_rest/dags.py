@@ -52,3 +52,16 @@ def trigger_dag(
     }
 
     return sess.post(request_url, json=body).json()
+
+
+def list_dag_runs(
+        sess: Session, 
+        base_url: str, 
+        dag_id: str,
+        limit: int = 100,
+        offset: int = 0,
+        order_by: str = 'start_date'
+        ) -> 'list[dict]':
+    
+    request_url = f"{base_url}/dags/{dag_id}/dagRuns?limit={limit}&offset={offset}&order_by={order_by}"
+    return sess.get(request_url).json()
