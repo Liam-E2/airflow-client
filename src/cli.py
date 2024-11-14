@@ -90,7 +90,7 @@ def dag(subs: argparse._SubParsersAction):
             args.conf.get('airflow_base_url')
         )
 
-        dag_run_results = airflow_rest.list_dag_runs(
+        dag_run_results = airflow_rest.pause_dag(
                 sess,
                 args.conf.get('airflow_base_url'),
                 args.dag_id,
@@ -109,6 +109,31 @@ def dag(subs: argparse._SubParsersAction):
             ])
     
     list_dagruns.set_defaults(cmd=list_runsfn)
+
+    pause_dag = dag_subs.add_parser("pause")
+    pause_dag.add_argument("-i", "--dag_id", help="DAG ID", type=str)
+    pause_dag.add_argument('--unpause', action="store_false")
+
+
+    def pausefn(args):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url')
+        )
+
+        pause_result = airflow_rest.pause_dag(
+                sess,
+                args.conf.get('airflow_base_url'),
+                args.dag_id,
+                args.unpause
+            )
+        
+        pprint_table([
+                {k: d[k] for k in d.keys() if k in args.conf.get('dag_list_cols')} for d in [pause_result]
+            ])
+
+
+    pause_dag.set_defaults(cmd=pausefn)
 
 
 
