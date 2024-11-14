@@ -65,3 +65,16 @@ def list_dag_runs(
     
     request_url = f"{base_url}/dags/{dag_id}/dagRuns?limit={limit}&offset={offset}&order_by={order_by}"
     return sess.get(request_url).json()
+
+
+def pause_dag(
+        sess: Session,
+        base_url: str,
+        dag_id: str,
+        pause_status: bool = True
+    ) -> bool:
+    """
+    Set DAG pause status to pause_status
+    """
+    request_url = f"{base_url}/dags/{dag_id}?update_mask=is_paused"
+    return sess.patch(request_url, json={"is_paused": pause_status}).json()
