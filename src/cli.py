@@ -90,7 +90,7 @@ def dag(subs: argparse._SubParsersAction):
             args.conf.get('airflow_base_url')
         )
 
-        dag_run_results = airflow_rest.pause_dag(
+        dag_run_results = airflow_rest.list_dag_runs(
                 sess,
                 args.conf.get('airflow_base_url'),
                 args.dag_id,
