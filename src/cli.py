@@ -140,6 +140,7 @@ def run(subs: argparse._SubParsersAction):
     _run: argparse.ArgumentParser = subs.add_parser('run')
     run_subs = _run.add_subparsers()
 
+    # Get dag run
     get = run_subs.add_parser('get')
     get.add_argument('-d','--dag_id', type=str, help="Dag ID")
     get.add_argument('-r', '--run_id', type=str, help="DagRun ID")
@@ -162,7 +163,61 @@ def run(subs: argparse._SubParsersAction):
     
     get.set_defaults(cmd=getfn)
 
+    # Set run state
+    state = run_subs.add_parser("state")
+    state.add_argument('-d', '--dag_id', help='dag_id')
+    state.add_argument('-r', '--run_id', help='dag run id')
+
+    states = state.add_mutually_exclusive_group(required=True)
+    states.add_argument('--success', action='store_true', help='Set state to success')
+    states.add_argument('--failed', action='store_true', help='Set state to failed')
+
+    def statefn(args):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url')
+        )
+
+        state_result = airflow_rest.set_run_state(
+                sess,
+                args.conf.get('airflow_base_url'),
+                args.dag_id,
+                args.run_id,
+                'success' if args.success else 'failed'
+            )
+        pprint_table([
+            {k: d[k] for k in d.keys() if k in args.conf.get('dag_run_list_cols')} for d in [state_result]
+        ])
+
+
+    states.set_defaults(cmd=statefn)
+
+
+    # Get run tasks
+    tasks = run_subs.add_parser('tasks')
+    tasks.add_argument('-d', '--dag_id', help='DAG id')
+    tasks.add_argument('-r', '--run_id', help='Dag run id')
+
+    def tasksfn(args):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url')
+        )
+
+        task_result = airflow_rest.get_run_tasks(
+                sess,
+                args.conf.get('airflow_base_url'),
+                args.dag_id,
+                args.run_id
+            )
+        pprint_table([
+            {k: d[k] for k in d.keys() if k in args.conf.get('task_list_cols')} for d in task_result.get('task_instances', [])
+        ])
+
+    tasks.set_defaults(cmd=tasksfn)
+
 def parse_args():
+
     parser = argparse.ArgumentParser()
     parser.set_defaults(
         cmd=lambda args: print("No arguments supplied; pass -h/--help for available arguments"),
