@@ -4,6 +4,8 @@ import logging
 
 from .cli import parse_args
 
+# The ugliest airflow client you ever did see
+
 if __name__ == '__main__':
     args = parse_args()
     try:

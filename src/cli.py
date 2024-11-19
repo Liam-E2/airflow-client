@@ -51,7 +51,7 @@ def dag(subs: argparse._SubParsersAction):
 
 
     trigger_dagrun = dag_subs.add_parser("trigger", help="Trigger a DAG run given DAG ID/run ID")
-    trigger_dagrun.add_argument("-i", "--dag_id", help="DAG id", type=str)
+    trigger_dagrun.add_argument("dag_id", help="DAG id", type=str)
     trigger_dagrun.add_argument("-r", "--run_id", help="(optional) DAG Run ID", required=False, default=None)
     trigger_dagrun.add_argument("-c", "--run_conf", help="(optional) JSON-formatted dag run conf", type=lambda v: json.loads(v), required=False, default=dict())
     trigger_dagrun.add_argument("-n", "--note", help="(optional) DAG Run Note", required=False)
@@ -78,7 +78,7 @@ def dag(subs: argparse._SubParsersAction):
     )
 
     list_dagruns = dag_subs.add_parser("runs", help="List DAG runs given DAG ID")
-    list_dagruns.add_argument("-i", "--dag_id", help="DAG id", type=str)
+    list_dagruns.add_argument("dag_id", help="DAG id", type=str)
     list_dagruns.add_argument("-l", "--limit", type=int, default=10)
     list_dagruns.add_argument("-o", "--offset", type=int, default=0)
     list_dagruns.add_argument("-ob", "--order_by", type=str, help="Field to order by, prefix with - for reverse", default="-start_date")
@@ -111,7 +111,7 @@ def dag(subs: argparse._SubParsersAction):
     list_dagruns.set_defaults(cmd=list_runsfn)
 
     pause_dag = dag_subs.add_parser("pause")
-    pause_dag.add_argument("-i", "--dag_id", help="DAG ID", type=str)
+    pause_dag.add_argument("dag_id", help="DAG ID", type=str)
     pause_dag.add_argument('--unpause', action="store_false")
 
 
