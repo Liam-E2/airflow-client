@@ -136,6 +136,12 @@ def dag(subs: argparse._SubParsersAction):
     pause_dag.set_defaults(cmd=pausefn)
 
 
+def run(subs: argparse._SubParsersAction):
+    _run: argparse.ArgumentParser = subs.add_parser('run')
+    run_subs = _run.add_subparsers()
+
+    run_subs.add_parser('clear')
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
