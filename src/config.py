@@ -18,7 +18,7 @@ class ClientConfig:
         if self.dag_list_cols is None:
             self.dag_list_cols = ['dag_id', 'description', 'last_parsed_time', 'schedule_interval', 'is_active', 'is_paused', 'has_import_errors', 'tags']
         if self.dag_run_list_cols is None:
-            self.dag_run_list_cols = ['dag_id', 'dag_run_id', 'conf', 'start_date', 'state']
+            self.dag_run_list_cols = ['dag_id', 'dag_run_id', 'conf', 'start_date', 'state', 'note']
 
 def get_config():
     with open(CONFIG_FILE, 'rb') as f:

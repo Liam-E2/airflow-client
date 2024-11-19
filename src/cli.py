@@ -140,8 +140,27 @@ def run(subs: argparse._SubParsersAction):
     _run: argparse.ArgumentParser = subs.add_parser('run')
     run_subs = _run.add_subparsers()
 
-    run_subs.add_parser('clear')
+    get = run_subs.add_parser('get')
+    get.add_argument('-d','--dag_id', type=str, help="Dag ID")
+    get.add_argument('-r', '--run_id', type=str, help="DagRun ID")
 
+    def getfn(args):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url')
+        )
+        get_result = airflow_rest.get_dag_run(
+                sess,
+                args.conf.get('airflow_base_url'),
+                args.dag_id,
+                args.run_id
+            )
+
+        pprint_table([
+                {k: d[k] for k in d.keys() if k in args.conf.get('dag_run_list_cols')} for d in [get_result]
+            ])
+    
+    get.set_defaults(cmd=getfn)
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -155,6 +174,7 @@ def parse_args():
     configure.set_defaults(cmd=edit_config)
 
     dag(subparsers) # Add dag + subcommands
+    run(subparsers)
 
 
     return parser.parse_args()
