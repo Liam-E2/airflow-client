@@ -3,6 +3,7 @@ from pprint import pprint
 
 from .config import *
 from .utils import pprint_table
+from.id_cache import *
 from . import airflow_rest
 
 
@@ -51,8 +52,8 @@ def dag(subs: argparse._SubParsersAction):
 
 
     trigger_dagrun = dag_subs.add_parser("trigger", help="Trigger a DAG run given DAG ID/run ID")
-    trigger_dagrun.add_argument("dag_id", help="DAG id", type=str)
-    trigger_dagrun.add_argument("-r", "--run_id", help="(optional) DAG Run ID", required=False, default=None)
+    trigger_dagrun.add_argument("dag_id", help="DAG id", type=str, default=load_cache().get('dag_id'), nargs='?')
+    trigger_dagrun.add_argument("-r", "--run_id", help="(optional) DAG Run ID", required=False, default=load_cache().get('run_id'), nargs='?')
     trigger_dagrun.add_argument("-c", "--run_conf", help="(optional) JSON-formatted dag run conf", type=lambda v: json.loads(v), required=False, default=dict())
     trigger_dagrun.add_argument("-n", "--note", help="(optional) DAG Run Note", required=False)
     def triggerfn(args: argparse.Namespace):
@@ -78,7 +79,7 @@ def dag(subs: argparse._SubParsersAction):
     )
 
     list_dagruns = dag_subs.add_parser("runs", help="List DAG runs given DAG ID")
-    list_dagruns.add_argument("dag_id", help="DAG id", type=str)
+    list_dagruns.add_argument("dag_id", help="DAG id", type=str, default=load_cache().get('dag_id'), nargs='?')
     list_dagruns.add_argument("-l", "--limit", type=int, default=10)
     list_dagruns.add_argument("-o", "--offset", type=int, default=0)
     list_dagruns.add_argument("-ob", "--order_by", type=str, help="Field to order by, prefix with - for reverse", default="-start_date")
@@ -111,7 +112,7 @@ def dag(subs: argparse._SubParsersAction):
     list_dagruns.set_defaults(cmd=list_runsfn)
 
     pause_dag = dag_subs.add_parser("pause")
-    pause_dag.add_argument("dag_id", help="DAG ID", type=str)
+    pause_dag.add_argument("dag_id", help="DAG ID", type=str, default=load_cache().get('dag_id'), nargs='?')
     pause_dag.add_argument('--unpause', action="store_false")
 
 
@@ -142,8 +143,8 @@ def run(subs: argparse._SubParsersAction):
 
     # Get dag run
     get = run_subs.add_parser('get')
-    get.add_argument('-d','--dag_id', type=str, help="Dag ID")
-    get.add_argument('-r', '--run_id', type=str, help="DagRun ID")
+    get.add_argument('-d','--dag_id', type=str, help="Dag ID", default=load_cache().get('dag_id'), nargs='?')
+    get.add_argument('-r', '--run_id', type=str, help="DagRun ID", default=load_cache().get('run_id'), nargs='?')
 
     def getfn(args):
         sess = airflow_rest.create_session(
@@ -165,8 +166,8 @@ def run(subs: argparse._SubParsersAction):
 
     # Set run state
     state = run_subs.add_parser("state")
-    state.add_argument('-d', '--dag_id', help='dag_id')
-    state.add_argument('-r', '--run_id', help='dag run id')
+    state.add_argument('-d', '--dag_id', help='dag_id', default=load_cache().get('dag_id'), nargs='?')
+    state.add_argument('-r', '--run_id', help='dag run id', default=load_cache().get('run_id'), nargs='?')
 
     states = state.add_mutually_exclusive_group(required=True)
     states.add_argument('--success', action='store_true', help='Set state to success')
@@ -195,8 +196,8 @@ def run(subs: argparse._SubParsersAction):
 
     # Get run tasks
     tasks = run_subs.add_parser('tasks')
-    tasks.add_argument('-d', '--dag_id', help='DAG id')
-    tasks.add_argument('-r', '--run_id', help='Dag run id')
+    tasks.add_argument('-d', '--dag_id', help='DAG id', default=load_cache().get('dag_id'), nargs='?')
+    tasks.add_argument('-r', '--run_id', help='Dag run id', default=load_cache().get('run_id'), nargs='?')
 
     def tasksfn(args):
         sess = airflow_rest.create_session(
@@ -231,5 +232,10 @@ def parse_args():
     dag(subparsers) # Add dag + subcommands
     run(subparsers)
 
+    args = parser.parse_args()
+    if hasattr(args, "dag_id"):
+        update_cache("dag_id", args.dag_id)
+    if hasattr(args, "run_id"):
+        update_cache("run_id", args.run_id)
 
     return parser.parse_args()

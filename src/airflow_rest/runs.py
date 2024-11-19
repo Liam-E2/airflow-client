@@ -32,5 +32,5 @@ def get_run_tasks(
         ) -> dict:
     request_url = f"{base_url}/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances"
     resp = sess.get(request_url)
-
+    print(resp.content)
     return resp.json()

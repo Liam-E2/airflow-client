@@ -9,6 +9,7 @@ CONFIG_FILE = os.path.join(SRC_DIR, 'config.json')
 
 @dataclass
 class ClientConfig:
+    save_ids: bool = True
     airflow_session_token: str = None
     airflow_base_url: str = None
     dag_list_cols: 'list[str]' = None
