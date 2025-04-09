@@ -1,5 +1,6 @@
 import argparse
 from pprint import pprint
+import sys
 
 from .config import *
 from .utils import pprint_table
@@ -16,6 +17,19 @@ def dag(subs: argparse._SubParsersAction):
 
     dag: argparse.ArgumentParser = subs.add_parser("dag", help="DAG commands")
     dag_subs = dag.add_subparsers()
+
+    dag_code = dag_subs.add_parser("code", help="print dag source")
+    dag_code.add_argument("dag_id", help="DAG id", type=str, default=load_cache().get('dag_id'), nargs='?')
+    def codefn(args: argparse.Namespace):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url'),
+        )
+        sys.stdout.write(airflow_rest.get_code(sess, args.conf.get('airflow_base_url'), args.dag_id))
+        sys.stdout.flush()
+    
+    dag_code.set_defaults(cmd=codefn)
+
 
     dag_list = dag_subs.add_parser("list", help="List DAGs")
     dag_list.add_argument("-f", "--filter", help="Regex pattern to match on dag_id", required=False)
@@ -39,7 +53,7 @@ def dag(subs: argparse._SubParsersAction):
                 args.active_only
             )
         if args.raw:
-            pprint(dag_results)
+            print(json.dumps(dag_results))
             return
         
         pprint_table(
@@ -53,7 +67,7 @@ def dag(subs: argparse._SubParsersAction):
 
     trigger_dagrun = dag_subs.add_parser("trigger", help="Trigger a DAG run given DAG ID/run ID")
     trigger_dagrun.add_argument("dag_id", help="DAG id", type=str, default=load_cache().get('dag_id'), nargs='?')
-    trigger_dagrun.add_argument("-r", "--run_id", help="(optional) DAG Run ID", required=False, default=load_cache().get('run_id'), nargs='?')
+    trigger_dagrun.add_argument("-r", "--run_id", help="(optional) DAG Run ID", required=False)
     trigger_dagrun.add_argument("-c", "--run_conf", help="(optional) JSON-formatted dag run conf", type=lambda v: json.loads(v), required=False, default=dict())
     trigger_dagrun.add_argument("-n", "--note", help="(optional) DAG Run Note", required=False)
     def triggerfn(args: argparse.Namespace):
@@ -136,6 +150,34 @@ def dag(subs: argparse._SubParsersAction):
 
     pause_dag.set_defaults(cmd=pausefn)
 
+    # clear run state
+    clear_run = dag_subs.add_parser('clear', help="Clear a dag run. By default, most recent dag run.")
+    clear_run.add_argument('-d', '--dag_id', help='DAG id', default=load_cache().get('dag_id'), nargs='?')
+    clear_run.add_argument('-r', '--run_id', help='Dag run id', default=None, nargs='?')
+
+
+    def clean_run_fn(args):
+        sess = airflow_rest.create_session(
+            args.conf.get('airflow_session_token'),
+            args.conf.get('airflow_base_url')
+        )
+
+        if args.run_id is None:
+            args.run_id = airflow_rest.list_dag_runs(
+                sess,
+                args.conf.get('airflow_base_url'),
+                args.dag_id,
+                1,
+                0,
+                "-start_date"
+            ).get('dag_runs', [{},])[0].get('dag_run_id')
+        
+        resp = airflow_rest.clear_run(sess, args.conf.get('airflow_base_url'), args.dag_id, args.run_id)
+
+        print(f"Cleared run {args.run_id}")
+
+    clear_run.set_defaults(cmd=clean_run_fn)
+
 
 def run(subs: argparse._SubParsersAction):
     _run: argparse.ArgumentParser = subs.add_parser('run')
@@ -217,6 +259,9 @@ def run(subs: argparse._SubParsersAction):
 
     tasks.set_defaults(cmd=tasksfn)
 
+
+
+
 def parse_args():
 
     parser = argparse.ArgumentParser()
@@ -238,4 +283,5 @@ def parse_args():
     if hasattr(args, "run_id"):
         update_cache("run_id", args.run_id)
 
+    #print(f"Cached IDs: {load_cache()}")
     return parser.parse_args()

@@ -78,3 +78,20 @@ def pause_dag(
     """
     request_url = f"{base_url}/dags/{dag_id}?update_mask=is_paused"
     return sess.patch(request_url, json={"is_paused": pause_status}).json()
+
+
+def get_code(
+        sess: Session,
+        base_url: str,
+        dag_id: str
+    ) -> bool:
+    """
+    Set DAG pause status to pause_status
+    """
+    request_url = f"{base_url}/dags/{dag_id}"
+    tok = sess.get(request_url).json().get('file_token')
+
+    if tok is None:
+        raise ValueError("No file token provided")
+    print(f"{base_url}/dagSources/{tok}")
+    return sess.get(f"{base_url}/dagSources/{tok}").content.decode()

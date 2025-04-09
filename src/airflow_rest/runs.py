@@ -32,5 +32,18 @@ def get_run_tasks(
         ) -> dict:
     request_url = f"{base_url}/dags/{dag_id}/dagRuns/{dag_run_id}/taskInstances"
     resp = sess.get(request_url)
-    print(resp.content)
+
+    return resp.json()
+
+
+def clear_run(
+        sess: Session,
+        base_url: str,
+        dag_id: str,
+        dag_run_id: str,
+        dry_run: bool = False
+        ) -> dict:
+    request_url = f"{base_url}/dags/{dag_id}/dagRuns/{dag_run_id}/clear"
+    resp = sess.post(request_url, json={"dry_run": dry_run})
+
     return resp.json()

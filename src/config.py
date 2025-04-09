@@ -22,7 +22,7 @@ class ClientConfig:
         if self.dag_run_list_cols is None:
             self.dag_run_list_cols = ['dag_id', 'dag_run_id', 'conf', 'start_date', 'state', 'note']
         if self.task_list_cols is None:
-            self.task_list_cols = ['dag_id', 'dag_run_id', 'task_id', 'duration', 'state', 'try_number', 'map_index']
+            self.task_list_cols = ['dag_id', 'dag_run_id', 'task_id', 'duration', 'state', 'try_number', 'map_index', 'start_date']
 
 def get_config():
     with open(CONFIG_FILE, 'rb') as f:

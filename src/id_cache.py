@@ -14,7 +14,6 @@ def load_cache():
     try:
         with open(ID_CACHE_PATH, 'rb') as f:
             data = json.load(f)
-            print(data)
         return data
     except Exception as e:
         print(format_exc())
